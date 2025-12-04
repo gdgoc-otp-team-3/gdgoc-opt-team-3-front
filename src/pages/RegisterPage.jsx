@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { signup } from '@/services/api'
+import { signup, sendEmailCode } from '@/services/api'
 
 export default function RegisterPage() {
   const { toast } = useToast()
@@ -21,10 +21,58 @@ export default function RegisterPage() {
     password: '',
     username: '',
   })
+  const [verificationCode, setVerificationCode] = useState('')
+  const [codeSent, setCodeSent] = useState(false)
+  const [sendingCode, setSendingCode] = useState(false)
   const [registerLoading, setRegisterLoading] = useState(false)
 
   const handleRegisterChange = (field, value) => {
     setRegisterValues((prev) => ({ ...prev, [field]: value }))
+    // 이메일이 변경되면 인증 코드 상태 초기화
+    if (field === 'email') {
+      setCodeSent(false)
+      setVerificationCode('')
+    }
+  }
+
+  const handleSendCode = async () => {
+    if (!registerValues.email) {
+      toast({
+        title: '이메일을 입력해주세요',
+        description: '이메일을 먼저 입력한 후 인증 코드를 요청하세요.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // 이메일 형식 검증
+    const emailRegex = /^[^\s@]+@yonsei\.ac\.kr$/
+    if (!emailRegex.test(registerValues.email)) {
+      toast({
+        title: '이메일 형식 오류',
+        description: '연세대학교 이메일(@yonsei.ac.kr)을 입력해주세요.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setSendingCode(true)
+    try {
+      await sendEmailCode(registerValues.email)
+      setCodeSent(true)
+      toast({
+        title: '인증 코드 전송 완료',
+        description: '이메일로 인증 코드가 전송되었습니다. 이메일을 확인해주세요.',
+      })
+    } catch (err) {
+      toast({
+        title: '인증 코드 전송 실패',
+        description: err.message || '인증 코드 전송에 실패했습니다.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSendingCode(false)
+    }
   }
 
   const handleRegister = (e) => {
@@ -50,8 +98,18 @@ export default function RegisterPage() {
       return
     }
 
+    // 인증 코드 검증
+    if (!verificationCode) {
+      toast({
+        title: '인증 코드를 입력해주세요',
+        description: '이메일로 받은 인증 코드를 입력해야 회원가입할 수 있습니다.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setRegisterLoading(true)
-    signup(registerValues)
+    signup({ ...registerValues, code: verificationCode })
       .then(() => {
         toast({
           title: '회원가입 완료',
@@ -85,18 +143,47 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="register-email">연세 이메일 *</Label>
-              <Input
-                id="register-email"
-                type="email"
-                placeholder="username@yonsei.ac.kr"
-                value={registerValues.email}
-                onChange={(e) => handleRegisterChange('email', e.target.value)}
-                required
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="register-email"
+                  type="email"
+                  placeholder="username@yonsei.ac.kr"
+                  value={registerValues.email}
+                  onChange={(e) => handleRegisterChange('email', e.target.value)}
+                  required
+                  disabled={codeSent}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSendCode}
+                  disabled={sendingCode || codeSent || !registerValues.email}
+                >
+                  {sendingCode ? '전송 중...' : codeSent ? '전송 완료' : '인증 코드 전송'}
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
                 * 연세대학교 이메일(@yonsei.ac.kr)만 사용 가능합니다.
               </p>
             </div>
+
+            {codeSent && (
+              <div className="space-y-2">
+                <Label htmlFor="verification-code">인증 코드 *</Label>
+                <Input
+                  id="verification-code"
+                  type="text"
+                  placeholder="이메일로 받은 인증 코드를 입력하세요"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  * 이메일로 전송된 인증 코드를 입력해주세요.
+                </p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="register-password">비밀번호 *</Label>
               <Input

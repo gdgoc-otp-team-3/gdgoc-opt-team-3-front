@@ -15,7 +15,7 @@ import {
 import { Upload, File, X, Sparkles, Lock } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { fetchUploadMetadata, generateNoteSummary } from '@/services/mockApi'
-import { createNoteMetadata, uploadFileToS3 } from '@/services/api'
+import { createNoteMetadata, uploadFileToS3, updateNoteAiSummary } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 
 export function UploadForm() {
@@ -164,6 +164,17 @@ export function UploadForm() {
 
       // 2. S3에 파일 업로드
       await uploadFileToS3(presignedUrl, file)
+
+      // 3. AI 요약이 있으면 백엔드에 업데이트
+      if (aiSummary) {
+        try {
+          await updateNoteAiSummary(noteId, aiSummary)
+          console.log('AI summary updated:', { noteId })
+        } catch (aiError) {
+          console.error('AI 요약 업데이트 실패 (업로드는 성공):', aiError)
+          // AI 요약 업데이트 실패해도 업로드는 성공으로 처리
+        }
+      }
 
       // 업로드 완료
       console.log('Upload completed:', { noteId, fileKey })
