@@ -72,8 +72,8 @@ export function setStoredToken(token) {
  * POST /auth/signup
  */
 export async function signup({ email, password, username, code }) {
-  if (!email || !password) {
-    throw new Error('이메일과 비밀번호를 입력해주세요.')
+  if (!email || !password || !username || !code) {
+    throw new Error('모든 정보를 입력해주세요.')
   }
 
   // 이메일 형식 검증
@@ -82,14 +82,13 @@ export async function signup({ email, password, username, code }) {
     throw new Error('연세대학교 이메일(@yonsei.ac.kr)을 입력해주세요.')
   }
 
-  // 백엔드 API 스펙에 맞게 email, password, username, code 전송
   const response = await apiRequest('/auth/signup', {
     method: 'POST',
-    body: JSON.stringify({ 
-      email, // email 필드 직접 전송
+    body: JSON.stringify({
+      email,
       password,
-      username: username || email.substring(0, email.indexOf('@')), // username이 없으면 email에서 자동 생성
-      code: code || '', // 이메일 인증 코드
+      username,
+      code,
     }),
   })
 
@@ -111,10 +110,10 @@ export async function login({ email, password }) {
     throw new Error('연세대학교 이메일(@yonsei.ac.kr)을 입력해주세요.')
   }
 
-  // 백엔드 API 스펙에 맞게 email, password 직접 전송
+  // 백엔드 API 스펙에 맞게 전송
   const response = await apiRequest('/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }), // email 필드 직접 사용
+    body: JSON.stringify({ email, password }),
   })
 
   // 토큰 저장
@@ -126,18 +125,32 @@ export async function login({ email, password }) {
 }
 
 /**
+ * 연세대 학생 인증 (현재 사용 안 함)
+ * POST /auth/verify-student
+ * 
+ * 이메일 인증으로 변경되었으나, 우선 사용하지 않음
+ * 필요시 이메일 인증 API로 업데이트 필요
+ */
+// export async function verifyStudent({ studentId, portalPassword }) {
+//   if (!studentId || !portalPassword) {
+//     throw new Error('학번과 포털 비밀번호를 입력해주세요.')
+//   }
+//
+//   const response = await apiRequest('/auth/verify-student', {
+//     method: 'POST',
+//     body: JSON.stringify({ studentId, portalPassword }),
+//   })
+//
+//   return response
+// }
+
+/**
  * 이메일 인증 코드 전송
  * POST /auth/email-code
  */
 export async function sendEmailCode(email) {
   if (!email) {
     throw new Error('이메일을 입력해주세요.')
-  }
-
-  // 이메일 형식 검증
-  const emailRegex = /^[^\s@]+@yonsei\.ac\.kr$/
-  if (!emailRegex.test(email)) {
-    throw new Error('연세대학교 이메일(@yonsei.ac.kr)을 입력해주세요.')
   }
 
   const response = await apiRequest('/auth/email-code', {
@@ -209,29 +222,17 @@ export async function interactWithNote(noteId, type) {
 }
 
 /**
- * AI 요약 업데이트
- * PATCH /notes/{noteId}/ai-summary
+ * 필기 AI 요약 정보 업데이트
+ * PUT /notes/{noteId}/ai-summary
  */
-export async function updateNoteAiSummary(noteId, aiSummaryData) {
-  if (!noteId) {
-    throw new Error('필기 ID가 필요합니다.')
-  }
-
-  if (!aiSummaryData) {
-    throw new Error('AI 요약 데이터가 필요합니다.')
-  }
-
-  const payload = {
-    ...(aiSummaryData.keyPoints && { keyPoints: aiSummaryData.keyPoints }),
-    ...(aiSummaryData.difficulty && { difficulty: aiSummaryData.difficulty }),
-    ...(aiSummaryData.estimatedTime && { estimatedTime: aiSummaryData.estimatedTime }),
-    ...(aiSummaryData.summary && { summary: aiSummaryData.summary }),
-    ...(aiSummaryData.tags && { tags: aiSummaryData.tags }),
+export async function updateNoteAiSummary(noteId, aiSummary) {
+  if (!noteId || !aiSummary) {
+    throw new Error('필기 ID와 AI 요약 정보가 필요합니다.')
   }
 
   const response = await apiRequest(`/notes/${noteId}/ai-summary`, {
-    method: 'PATCH',
-    body: JSON.stringify(payload),
+    method: 'PUT',
+    body: JSON.stringify(aiSummary),
   })
 
   return response
@@ -346,4 +347,3 @@ export async function fetchTopContributors() {
 
   return response
 }
-
