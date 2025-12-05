@@ -121,7 +121,7 @@ export default function RegisterPage() {
             <span className="font-bold text-3xl text-primary-foreground">Y</span>
           </div>
           <CardTitle className="text-2xl font-bold">회원가입</CardTitle>
-          <CardDescription>연세 노트 계정을 만들어보세요</CardDescription>
+          <CardDescription>BlueNote 계정을 만들어보세요</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">

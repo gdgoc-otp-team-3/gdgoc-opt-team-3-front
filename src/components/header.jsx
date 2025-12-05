@@ -21,7 +21,7 @@ export function Header() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0f4a84]">
               <span className="font-bold text-lg text-white">Y</span>
             </div>
-            <span className="font-bold text-xl text-[#0f4a84]">연세 노트</span>
+            <span className="font-bold text-xl text-[#0f4a84]">BlueNote</span>
           </Link>
 
           <div className="hidden md:flex relative w-96">

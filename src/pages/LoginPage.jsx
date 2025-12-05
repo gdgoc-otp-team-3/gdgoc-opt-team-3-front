@@ -24,7 +24,7 @@ export default function LoginPage() {
 
   const handleLogin = (e) => {
     e.preventDefault()
-    
+
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@yonsei\.ac\.kr$/
     if (!emailRegex.test(email)) {
@@ -64,7 +64,7 @@ export default function LoginPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
             <span className="font-bold text-3xl text-primary-foreground">Y</span>
           </div>
-          <CardTitle className="text-2xl font-bold">연세 노트 로그인</CardTitle>
+          <CardTitle className="text-2xl font-bold">BlueNote 로그인</CardTitle>
           <CardDescription>연세 이메일과 비밀번호로 로그인하세요</CardDescription>
         </CardHeader>
         <CardContent>

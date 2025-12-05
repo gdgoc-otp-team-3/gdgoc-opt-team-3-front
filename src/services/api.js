@@ -249,6 +249,9 @@ export async function createNoteMetadata({
   subject,
   professor,
   description,
+  difficulty,
+  estimatedTime,
+  aiSummary,
 }) {
   if (!fileName || !fileType || !semester || !major || !subject) {
     throw new Error('필수 정보를 모두 입력해주세요.')
@@ -260,9 +263,18 @@ export async function createNoteMetadata({
     semester,
     major,
     subject,
+    subject,
     ...(professor && { professor }),
     ...(description && { description }),
+    ...(difficulty && { difficulty }),
+    ...(estimatedTime && { estimatedTime }),
+    ...(aiSummary && { aiSummary }),
   }
+
+  const response = await apiRequest('/notes', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 
   return response
 }

@@ -18,6 +18,21 @@ import { fetchUploadMetadata, generateNoteSummary } from '@/services/mockApi'
 import { createNoteMetadata, uploadFileToS3, updateNoteAiSummary } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 
+function mapDifficultyToEnum(koreanDifficulty) {
+  switch (koreanDifficulty) {
+    case '입문':
+    case '초급':
+      return 'Easy'
+    case '중급':
+      return 'Medium'
+    case '중상급':
+    case '고급':
+      return 'Hard'
+    default:
+      return 'Medium'
+  }
+}
+
 export function UploadForm() {
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -160,6 +175,9 @@ export function UploadForm() {
         subject: selectedSubject,
         professor,
         description: description || undefined,
+        difficulty: aiSummary ? mapDifficultyToEnum(aiSummary.difficulty) : undefined,
+        estimatedTime: aiSummary?.estimatedTime,
+        aiSummary: aiSummary?.summary,
       })
 
       // 2. S3에 파일 업로드
@@ -282,7 +300,7 @@ export function UploadForm() {
             <div className="space-y-2">
               <Label htmlFor="semester">학기 *</Label>
               <Select value={semester} onValueChange={setSemester} disabled={metaLoading}>
-                <SelectTrigger>
+                <SelectTrigger id="semester">
                   <SelectValue placeholder="학기를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
