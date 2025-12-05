@@ -1,30 +1,60 @@
-name: git push into another repo to deploy to vercel
+name: Build & Deploy to https://github.com/jessieyeon/gdgoc-opt-team-3-front.git
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
-    container: pandoc/latex
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Install mustache (to update the date)
-        run: apk add ruby && gem install mustache
-      - name: creates output
-        run: sh ./build.sh
-      - name: Pushes to another repository
-        id: push_directory
-        uses: cpina/github-action-push-to-another-repository@main
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Prepare output
+        shell: sh
+        run: |
+          # Remove existing output directory
+          rm -rf output
+          mkdir output
+          # Copy necessary files for deployment, excluding development files
+          find . -maxdepth 1 -not -path "./output" -not -path "./.git" -not -path "./.github" -not -path "./node_modules" -not -path "./src" -not -path "./vite.config.js" -not -path "./postcss.config.mjs" -not -path "./jsconfig.json" -not -path "./package.json" -not -path "./package-lock.json" -exec cp -R {} output/ \;
+          # Ensure dist folder is included (it contains the built app)
+          if [ -d "dist" ]; then
+            cp -R dist output/
+          fi
+
+      - name: Push to https://github.com/jessieyeon/gdgoc-opt-team-3-front.git
+        id: push
+        uses: cpina/github-action-push-to-another-repository@v1.7.2
         env:
-          API_TOKEN_GITHUB: ${{ secrets.AUTO_ACTIONS }}
+          API_TOKEN_GITHUB: ${{ secrets.BLUENOTE }}
         with:
           source-directory: 'output'
           destination-github-username: jessieyeon
           destination-repository-name: gdgoc-opt-team-3-front
-          user-email: ${{ secrets.EMAIL }}
-          commit-message: ${{ github.event.commits[0].message }}
+          user-name: GitHub Actions
+          user-email: yeoneunseo2005@gmail.com
+          commit-message: 'Deploy from build: ${{ github.sha }}'
           target-branch: main
-      - name: Test get variable exported by push-to-another-repository
-        run: echo $DESTINATION_CLONED_DIRECTORY
+
+      - name: 'Debug: show cloned dir'
+        run: echo "Cloned into $DESTINATION_CLONED_DIRECTORY"
