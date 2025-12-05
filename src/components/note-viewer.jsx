@@ -32,7 +32,11 @@ export function NoteViewer({ noteId }) {
       }
       return
     }
-    alert('다운로드가 시작됩니다. (데모)')
+    if (note?.link) {
+      window.open(note.link, '_blank')
+    } else {
+      alert('다운로드 링크를 찾을 수 없습니다.')
+    }
   }
 
   useEffect(() => {
@@ -131,7 +135,7 @@ export function NoteViewer({ noteId }) {
     ? { summary: note.aiSummary, difficulty: note.difficulty, estimatedTime: note.estimatedTime }
     : note.aiSummary || {}
   const relatedNotes = note.relatedNotes || []
-  
+
   // Fact-Check를 위한 노트 내용 (AI summary 또는 description 사용)
   const noteContentForFactCheck = aiSummary.summary || note.description || note.summary || ''
   const subjectForFactCheck = note.subject || note.major || ''
@@ -215,7 +219,7 @@ export function NoteViewer({ noteId }) {
 
       <div className="space-y-6">
         {/* Fact-Check 패널 */}
-        <FactCheckPanel 
+        <FactCheckPanel
           noteContent={noteContentForFactCheck}
           subject={subjectForFactCheck}
         />
