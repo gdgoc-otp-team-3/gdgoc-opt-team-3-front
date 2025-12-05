@@ -3,7 +3,11 @@
  * OpenAPI 3.0 스펙에 따라 작성됨
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+if (!API_BASE_URL) {
+  console.error('❌ VITE_API_BASE_URL is not defined!')
+}
+
 console.log('Current API_BASE_URL:', API_BASE_URL)
 
 /**
