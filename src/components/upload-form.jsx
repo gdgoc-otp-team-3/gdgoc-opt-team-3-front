@@ -180,6 +180,8 @@ export function UploadForm() {
         aiSummary: aiSummary?.summary,
       })
 
+      console.log('Received Presigned URL:', presignedUrl) // Debug log
+
       // 2. S3에 파일 업로드
       await uploadFileToS3(presignedUrl, file)
 

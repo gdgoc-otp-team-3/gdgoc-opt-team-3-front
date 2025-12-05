@@ -4,6 +4,7 @@
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
+console.log('Current API_BASE_URL:', API_BASE_URL)
 
 /**
  * API 요청 기본 함수
@@ -20,6 +21,12 @@ async function apiRequest(endpoint, options = {}) {
       ...options.headers,
     },
   }
+
+  console.log(`[API Request] ${endpoint}`, {
+    url,
+    tokenExists: !!token,
+    headers: config.headers
+  })
 
   try {
     const response = await fetch(url, config)
