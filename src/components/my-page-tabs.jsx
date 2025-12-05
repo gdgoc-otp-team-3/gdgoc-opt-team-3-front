@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { NoteCard } from '@/components/note-card'
-import { fetchUserLibrary } from '@/services/mockApi'
+import { fetchUserNotes } from '@/services/api'
 import { useAuth } from '@/context/AuthContext.jsx'
 
 export function MyPageTabs() {
@@ -24,8 +24,17 @@ export function MyPageTabs() {
   useEffect(() => {
     if (!user?.id) return
     setIsLoading(true)
-    fetchUserLibrary(user.id)
-      .then((data) => setLibrary(data))
+
+    // 내 필기만 실제 API 연동
+    fetchUserNotes(user.id)
+      .then((notes) => {
+        setLibrary(prev => ({
+          ...prev,
+          myNotes: notes,
+          // 나머지는 아직 백엔드 미구현이므로 빈 배열 유지 (또는 필요시 mock 유지 가능)
+        }))
+      })
+      .catch(err => console.error("Failed to fetch user notes:", err))
       .finally(() => setIsLoading(false))
   }, [user?.id])
 
@@ -52,7 +61,7 @@ export function MyPageTabs() {
           <TabsContent key={section.value} value={section.value} className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>{section.label} 필기</CardTitle>
+                <CardTitle>{section.label}</CardTitle>
                 <CardDescription>
                   {section.description} 총 {notes.length}개
                 </CardDescription>
